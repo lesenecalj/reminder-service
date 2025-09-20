@@ -1,7 +1,8 @@
-import { Entity, PrimaryColumn, Column } from 'typeorm'
+import { Entity, PrimaryColumn, Column, Index } from 'typeorm'
 
 export type ReminderStatus = 'PENDING' | 'FIRED';
 
+@Index('uniq_pending_name', ['name'], { unique: true, where: "status = 'PENDING'" })
 @Entity({ name: 'reminders' })
 export class Reminder {
   @PrimaryColumn({ type: 'text' })

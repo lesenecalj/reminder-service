@@ -13,8 +13,8 @@ export class ReminderRepository {
     return this.repo.save(rem);
   }
 
-  async get(id: string) {
-    return this.repo.findOne({ where: { id } });
+  async getPendingByName(name: string) {
+    return this.repo.findOne({ where: { name, status: 'PENDING' } });
   }
 
   async list(status: ReminderStatus) {
