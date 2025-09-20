@@ -1,6 +1,6 @@
-import { WebSocketServer, WebSocket } from 'ws';
-import { ReminderService } from '../services/reminder.service';
+import { WebSocket, WebSocketServer } from 'ws';
 import { Scheduler } from '../helpers/scheduler';
+import { ReminderService } from '../services/reminder.service';
 
 export class WebSocketGateway {
   private wss?: WebSocketServer

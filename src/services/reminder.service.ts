@@ -1,10 +1,10 @@
-import { z } from 'zod';
 import { randomUUID } from 'crypto';
+import { z } from 'zod';
 import { Reminder } from '../entities/reminder.entity';
-import { ReminderRepository } from '../repositories/reminder.repository';
-import { Clock } from '../lib/types/clock';
-import { Scheduler } from '../helpers/scheduler';
 import { Broadcaster } from '../helpers/broadcaster';
+import { Scheduler } from '../helpers/scheduler';
+import { Clock } from '../lib/types';
+import { ReminderRepository } from '../repositories/reminder.repository';
 
 const addInput = z.object({
   name: z.string().min(1).max(256),
@@ -33,11 +33,13 @@ export class ReminderService {
 
   async addReminder(input: { name: string; atIso: string }) {
     const { name, atIso } = addInput.parse(input);
-    const at = Date.parse(atIso);
-    const now = this.clock.now().getTime();
-    if (Number.isNaN(at) || at <= now) {
-      throw Object.assign(new Error("'at' must be a future ISO timestamp"), { code: 'INVALID_AT' });
+    const at = new Date(atIso);
+    const now = this.clock.now();
+
+    if (Number.isNaN(at.getTime()) || at.getTime() <= now.getTime()) {
+      throw new Error("'at' must be a future ISO timestamp.");
     }
+
     const rem: Reminder = {
       id: 'rmd_' + randomUUID(),
       name,
@@ -52,18 +54,18 @@ export class ReminderService {
   }
 
   private async fire(reminder: Reminder) {
-    const time = this.clock.now().getTime();
-    await this.reminderRepo.markFired(reminder.id, time);
+    await this.reminderRepo.setFiredStatus(reminder.id, this.clock.now());
   }
 
   async onReminderDue(reminder: Reminder) {
-    const ts = this.clock.now().getTime();
-    await this.reminderRepo.markFired(reminder.id, ts);
+    console.info(`[ReminderService][onReminderDue]: set 'FIRED' status on reminder: ${reminder.id} ${reminder.name}`);
+    const now = this.clock.now();
+    await this.reminderRepo.setFiredStatus(reminder.id, now);
     this.broadcaster.reminderFired({
       id: reminder.id,
       name: reminder.name,
       atIso: new Date(reminder.at).toISOString(),
-      firedAtIso: new Date(ts).toISOString()
+      firedAtIso: new Date(now).toISOString()
     })
   }
 }

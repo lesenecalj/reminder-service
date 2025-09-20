@@ -24,7 +24,7 @@ export class ReminderRepository {
     });
   }
 
-  async markFired(id: string, at: number) {
+  async setFiredStatus(id: string, at: Date) {
     await this.repo.update({ id }, { status: "FIRED", fired_at: at });
   }
 }
