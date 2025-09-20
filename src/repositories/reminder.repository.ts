@@ -10,7 +10,7 @@ export class ReminderRepository {
   }
 
   async add(rem: Reminder) {
-    await this.repo.insert(rem);
+    return this.repo.save(rem);
   }
 
   async get(id: string) {

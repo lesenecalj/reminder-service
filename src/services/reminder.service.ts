@@ -43,7 +43,9 @@ export class ReminderService {
       fired_at: null,
     };
 
-    await this.reminderRepo.add(rem);
+    const createdReminder = await this.reminderRepo.add(rem);
+    console.info(`[ReminderService][addReminder]: created reminder with name="${createdReminder.name}" (${createdReminder.id})`);
+
     this.scheduler.push(rem);
     return rem;
   }
