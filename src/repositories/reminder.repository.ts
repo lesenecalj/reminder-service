@@ -1,6 +1,7 @@
-import { Repository } from 'typeorm';
-import { Reminder, ReminderStatus } from '../entities/reminder.entity';
+import { DeepPartial, Repository } from 'typeorm';
+import { Reminder } from '../entities/reminder.entity';
 import { AppDataSource } from '../data-source';
+import { ReminderStatus } from '../types';
 
 export class ReminderRepository {
   private repo: Repository<Reminder>;
@@ -9,12 +10,16 @@ export class ReminderRepository {
     this.repo = AppDataSource.getRepository(Reminder);
   }
 
-  async add(rem: Reminder) {
-    await this.repo.insert(rem);
+  async create(data: DeepPartial<Reminder>): Promise<Reminder> {
+    return this.repo.create(data);
   }
 
-  async get(id: string) {
-    return this.repo.findOne({ where: { id } });
+  async save(rem: Reminder): Promise<Reminder> {
+    return this.repo.save(rem);
+  }
+
+  async getPendingByName(name: string) {
+    return this.repo.findOne({ where: { name, status: 'PENDING' } });
   }
 
   async list(status: ReminderStatus) {
@@ -24,7 +29,7 @@ export class ReminderRepository {
     });
   }
 
-  async markFired(id: string, at: number) {
+  async setFiredStatus(id: string, at: Date) {
     await this.repo.update({ id }, { status: "FIRED", fired_at: at });
   }
 }

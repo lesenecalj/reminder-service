@@ -1,6 +1,6 @@
-import { WebSocketServer, WebSocket } from 'ws';
-import { ReminderService } from '../services/reminder.service';
+import { WebSocket, WebSocketServer } from 'ws';
 import { Scheduler } from '../helpers/scheduler';
+import { ReminderService } from '../services/reminder.service';
 
 export class WebSocketGateway {
   private wss?: WebSocketServer
@@ -32,10 +32,15 @@ export class WebSocketGateway {
           const msg = JSON.parse(String(buf));
           if (msg?.type === 'C2S_ADD_REMINDER') {
             const { name, at } = msg.payload ?? {};
-            const rem = await this.reminderService.addReminder({ name, atIso: at });
+            const { reminder, created } = await this.reminderService.addReminder({ name, atIso: at });
             ws.send(JSON.stringify({
               type: 'S2C_REMINDER_ADDED',
-              payload: { id: rem.id, name: rem.name, at: new Date(rem.at).toISOString() },
+              payload: {
+                id: reminder.id,
+                name: reminder.name,
+                at: new Date(reminder.at).toISOString(),
+                created,
+              }
             }));
           } else {
             ws.send(JSON.stringify({ type: 'ERROR', payload: { code: 'UNKNOWN_TYPE', message: 'Unsupported message type' } }));

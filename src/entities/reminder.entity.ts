@@ -1,24 +1,24 @@
-import { Entity, PrimaryColumn, Column } from 'typeorm'
+import { Entity, Column, Index, CreateDateColumn, PrimaryGeneratedColumn } from 'typeorm'
+import { ReminderStatus } from '../types';
 
-export type ReminderStatus = 'PENDING' | 'FIRED';
-
+@Index('uniq_pending_name', ['name'], { unique: true, where: "status = 'PENDING'" })
 @Entity({ name: 'reminders' })
 export class Reminder {
-  @PrimaryColumn({ type: 'text' })
-  id!: string
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column({ type: 'text' })
-  name!: string
+  name!: string;
 
-  @Column({ type: 'integer' })
-  at!: number
+  @Column({ type: 'timestamptz' })
+  at!: Date;
 
   @Column({ type: 'text' })
-  status!: ReminderStatus
+  status!: ReminderStatus;
 
-  @Column({ type: 'integer' })
-  created_at!: number
+  @CreateDateColumn({ type: 'timestamptz' })
+  created_at!: Date;
 
-  @Column({ type: 'integer', nullable: true })
-  fired_at!: number | null
+  @Column({ type: 'timestamptz', nullable: true, default: null })
+  fired_at!: Date | null;
 }
