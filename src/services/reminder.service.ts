@@ -1,15 +1,9 @@
 import { randomUUID } from 'crypto';
-import { z } from 'zod';
 import { Reminder } from '../entities/reminder.entity';
 import { Broadcaster } from '../helpers/broadcaster';
 import { Scheduler } from '../helpers/scheduler';
-import { Clock } from '../lib/types';
+import { AddReminderSchema, Clock, inputReminderDto } from '../types';
 import { ReminderRepository } from '../repositories/reminder.repository';
-
-const addInput = z.object({
-  name: z.string().min(1).max(256),
-  atIso: z.string().datetime(),
-})
 
 export class ReminderService {
   private readonly reminderRepo;
@@ -31,8 +25,8 @@ export class ReminderService {
     this.scheduler.load(pendingReminders);
   }
 
-  async addReminder(input: { name: string; atIso: string }) {
-    const { name, atIso } = addInput.parse(input);
+  async addReminder(input: inputReminderDto) {
+    const { name, atIso } = AddReminderSchema.parse(input);
     const at = new Date(atIso);
     const now = this.clock.now();
 
@@ -46,8 +40,9 @@ export class ReminderService {
       at,
       status: 'PENDING',
       created_at: now,
-      fired_at: null
+      fired_at: null,
     };
+
     await this.reminderRepo.add(rem);
     this.scheduler.push(rem);
     return rem;

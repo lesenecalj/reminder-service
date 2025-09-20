@@ -1,4 +1,4 @@
-import { Clock, Schedulable } from '../lib/types';
+import { Clock, Schedulable } from '../types';
 
 export class Scheduler {
   private queue: Schedulable[] = [];
