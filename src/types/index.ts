@@ -12,6 +12,8 @@ export interface inputReminderDto {
   atIso: string;
 };
 
+export type ReminderStatus = 'PENDING' | 'FIRED';
+
 export const AddReminderSchema = z.object({
   name: z.string().min(1).max(256),
   atIso: z.string().datetime(),

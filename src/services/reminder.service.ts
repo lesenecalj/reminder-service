@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import { Reminder } from '../entities/reminder.entity';
 import { Broadcaster } from '../helpers/broadcaster';
 import { Scheduler } from '../helpers/scheduler';
@@ -40,21 +39,12 @@ export class ReminderService {
       return existing;
     }
 
-    const rem: Reminder = {
-      id: 'rmd_' + randomUUID(),
-      name,
-      at,
-      status: 'PENDING',
-      created_at: now,
-      fired_at: null,
-    };
-
     try {
-      const createdReminder = await this.reminderRepo.add(rem);
+      const reminder = await this.reminderRepo.create({ name, at, status: 'PENDING' });
+      const createdReminder = await this.reminderRepo.save(reminder);
       console.info(`[ReminderService][addReminder]: created reminder with name="${createdReminder.name}" (${createdReminder.id})`);
-
-      this.scheduler.push(rem);
-      return rem;
+      this.scheduler.push(createdReminder);
+      return createdReminder;
     } catch (error: any) {
       if (error?.code === '23505') {
         const dup = await this.reminderRepo.getPendingByName(name);
