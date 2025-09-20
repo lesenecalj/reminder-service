@@ -1,4 +1,5 @@
 import { WebSocket } from 'ws';
+import 'dotenv/config';
 import { AppDataSource } from './data-source';
 import { WebSocketGateway } from './controllers/ws.gateway';
 import { ReminderService } from './services/reminder.service';
