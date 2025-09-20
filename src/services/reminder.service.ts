@@ -1,8 +1,9 @@
 import { Reminder } from '../entities/reminder.entity';
 import { Broadcaster } from '../helpers/broadcaster';
 import { Scheduler } from '../helpers/scheduler';
-import { AddReminderSchema, Clock, inputReminderDto } from '../types';
 import { ReminderRepository } from '../repositories/reminder.repository';
+import { AddReminderSchema } from '../schemas';
+import { Clock, CreateReminderInput, CreateReminderOutput } from '../types';
 
 export class ReminderService {
   private readonly reminderRepo;
@@ -24,7 +25,7 @@ export class ReminderService {
     this.scheduler.load(pendingReminders);
   }
 
-  async addReminder(input: inputReminderDto) {
+  async addReminder(input: CreateReminderInput): Promise<CreateReminderOutput> {
     const { name, atIso } = AddReminderSchema.parse(input);
     const at = new Date(atIso);
     const now = this.clock.now();
@@ -36,7 +37,7 @@ export class ReminderService {
     const existing = await this.reminderRepo.getPendingByName(name);
     if (existing) {
       console.info(`[ReminderService][addReminder]: return reminder already created with name="${existing.name}" (${existing.id})`);
-      return existing;
+      return { reminder: existing, created: false };
     }
 
     try {
@@ -44,11 +45,11 @@ export class ReminderService {
       const createdReminder = await this.reminderRepo.save(reminder);
       console.info(`[ReminderService][addReminder]: created reminder with name="${createdReminder.name}" (${createdReminder.id})`);
       this.scheduler.push(createdReminder);
-      return createdReminder;
+      return { reminder: createdReminder, created: true };
     } catch (error: any) {
       if (error?.code === '23505') {
         const dup = await this.reminderRepo.getPendingByName(name);
-        if (dup) return dup;
+        if (dup) return { reminder: dup, created: false };
       }
       throw error;
     }

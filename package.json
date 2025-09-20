@@ -8,8 +8,8 @@
     "dev": "tsx watch src/server.ts",
     "start": "node dist/server.js",
     "build": "tsc -p tsconfig.json",
-    "cli:create": "node src/clients/cli-create.js",
-    "cli:listen": "node src/clients/client-listener.js",
+    "cli:create": "tsx src/clients/cli-create.ts",
+    "cli:listen": "tsx src/clients/client-listener.ts",
     "test": "vitest run --coverage"
   },
   "keywords": [],
