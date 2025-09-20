@@ -1,0 +1,49 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# TypeScript build output
+dist/
+build/
+out/
+
+# Env & configs
+.env
+.env.*
+*.local
+
+# Logs
+logs
+*.log
+*.log.*
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Database files (if you ever used sqlite before)
+*.sqlite
+*.db
+
+# Coverage / test
+coverage/
+.nyc_output/
+
+# IDEs / editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker
+docker-compose.override.yml
+Dockerfile.local
+docker-data/
+pgdata/
+
+# Misc
+.DS_Store
+Thumbs.db

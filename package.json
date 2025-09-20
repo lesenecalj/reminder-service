@@ -1,0 +1,31 @@
+{
+  "name": "reminder-service",
+  "version": "1.0.0",
+  "description": "Create real time reminder service",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "build": "tsc -p tsconfig.json",
+    "cli:create": "node src/clients/cli-create.js",
+    "cli:listen": "node src/clients/client-listener.js",
+    "test": "vitest run --coverage"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.20.5",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "reflect-metadata": "^0.2.2",
+    "sqlite3": "^5.1.7",
+    "typeorm": "^0.3.26",
+    "ws": "^8.18.3",
+    "zod": "^4.1.9"
+  }
+}
