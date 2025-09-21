@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Create real time reminder service",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "start": "node dist/server.js",
@@ -20,6 +19,7 @@
     "@types/node": "^24.5.2",
     "@types/ws": "^8.18.1",
     "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   },
   "dependencies": {

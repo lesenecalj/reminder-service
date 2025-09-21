@@ -8,30 +8,36 @@ import { Broadcaster } from './helpers/broadcaster';
 import { BullmqScheduler } from './adapters/scheduler/bullmq.scheduler';
 
 const PORT = Number(process.env.PORT || 8080);
+async function main() {
+  await AppDataSource.initialize();
+  console.info('DB initialized');
+  const clients = new Set<WebSocket>();
+  const scheduler = new BullmqScheduler({ redisUrl: process.env.REDIS_URL! });
+  const broadcaster = new Broadcaster(clients);
+  const reminderRepository = new ReminderRepository();
+  const reminderService = new ReminderService(
+    scheduler,
+    broadcaster,
+    reminderRepository,
+  );
 
-await AppDataSource.initialize();
-console.info('DB initialized');
-const clients = new Set<WebSocket>();
-const scheduler = new BullmqScheduler({ redisUrl: process.env.REDIS_URL! });
-const broadcaster = new Broadcaster(clients);
-const reminderRepository = new ReminderRepository();
-const reminderService = new ReminderService(
-  scheduler,
-  broadcaster,
-  reminderRepository,
-);
+  await scheduler.start((id) => reminderService.onReminderDue(id));
 
-await scheduler.start((id) => reminderService.onReminderDue(id));
+  const webSocketGateway = new WebSocketGateway(PORT, reminderService, clients);
+  await webSocketGateway.start();
+  console.info(`WS listening on ws://localhost:${PORT}`);
 
-const webSocketGateway = new WebSocketGateway(PORT, reminderService, clients);
-await webSocketGateway.start();
-console.info(`WS listening on ws://localhost:${PORT}`);
+  const pendingReminders = await reminderService.getPendingReminders();
+  if (pendingReminders && pendingReminders.length > 0) {
+    const nextReminderToBeCalled = pendingReminders[0];
+    console.log(`next reminder to be called is  ${nextReminderToBeCalled.name} (${nextReminderToBeCalled.id})`);
+  }
 
-const pendingReminders = await reminderService.getPendingReminders();
-if (pendingReminders && pendingReminders.length > 0) {
-  const nextReminderToBeCalled = pendingReminders[0];
-  console.log(`next reminder to be called is  ${nextReminderToBeCalled.name} (${nextReminderToBeCalled.id})`);
+  process.on('SIGINT', async () => { await webSocketGateway.stop(); process.exit(0) });
+  process.on('SIGTERM', async () => { await webSocketGateway.stop(); process.exit(0) });
 }
 
-process.on('SIGINT', async () => { await webSocketGateway.stop(); process.exit(0) });
-process.on('SIGTERM', async () => { await webSocketGateway.stop(); process.exit(0) });
+main().catch((err) => {
+  console.error('Fatal server error', err);
+  process.exit(1);
+})
