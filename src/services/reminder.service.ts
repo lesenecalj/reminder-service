@@ -20,9 +20,10 @@ export class ReminderService {
     this.reminderRepo = reminderRepository;
   }
 
-  async getPendingReminder() {
+  async getPendingReminders(): Promise<Reminder[]> {
     const pendingReminders = await this.reminderRepo.list('PENDING');
     this.scheduler.load(pendingReminders);
+    return pendingReminders;
   }
 
   async addReminder(input: CreateReminderInput): Promise<CreateReminderOutput> {

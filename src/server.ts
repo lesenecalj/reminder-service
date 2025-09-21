@@ -31,7 +31,11 @@ const webSocketGateway = new WebSocketGateway(PORT, reminderService, scheduler, 
 await webSocketGateway.start();
 console.info(`WS listening on ws://localhost:${PORT}`);
 
-await reminderService.getPendingReminder();
+const pendingReminders = await reminderService.getPendingReminders();
+if (pendingReminders && pendingReminders.length > 0) {
+  const nextReminderToBeCalled = pendingReminders[0];
+  console.log(`next reminder to be called is  ${nextReminderToBeCalled.name} (${nextReminderToBeCalled.id})`);
+}
 
 process.on('SIGINT', async () => { await webSocketGateway.stop(); process.exit(0) });
 process.on('SIGTERM', async () => { await webSocketGateway.stop(); process.exit(0) });
