@@ -1,43 +1,43 @@
 import { Reminder } from '../entities/reminder.entity';
 import { Broadcaster } from '../helpers/broadcaster';
-import { Scheduler } from '../helpers/scheduler';
 import { ReminderRepository } from '../repositories/reminder.repository';
 import { AddReminderSchema } from '../schemas';
-import { Clock, CreateReminderInput, CreateReminderOutput } from '../types';
+import { CreateReminderInput, CreateReminderOutput } from '../types';
+
+export interface IScheduler {
+  start(onFire: (id: string) => Promise<void> | void): Promise<void> | void;
+  push(job: { id: string; at: Date }): Promise<void> | void;
+  load(jobs: { id: string; at: Date }[]): Promise<void> | void;
+  clear?(): Promise<void> | void;
+  close?(): Promise<void> | void;
+}
 
 export class ReminderService {
-  private readonly reminderRepo;
-  private readonly scheduler;
-  private readonly broadcaster;
   constructor(
-    private clock: Clock,
-    scheduler: Scheduler,
-    broadcaster: Broadcaster,
-    reminderRepository: ReminderRepository,
-  ) {
-    this.scheduler = scheduler;
-    this.broadcaster = broadcaster;
-    this.reminderRepo = reminderRepository;
-  }
+    private readonly scheduler: IScheduler,
+    private readonly broadcaster: Broadcaster,
+    private readonly reminderRepo: ReminderRepository,
+    private readonly clock = () => new Date(),
+  ) { }
 
   async getPendingReminders(): Promise<Reminder[]> {
     const pendingReminders = await this.reminderRepo.list('PENDING');
-    this.scheduler.load(pendingReminders);
+    await this.scheduler.load(pendingReminders);
     return pendingReminders;
   }
 
   async addReminder(input: CreateReminderInput): Promise<CreateReminderOutput> {
     const { name, atIso } = AddReminderSchema.parse(input);
     const at = new Date(atIso);
-    const now = this.clock.now();
+    const now = this.clock();
 
     if (Number.isNaN(at.getTime()) || at.getTime() <= now.getTime()) {
       throw new Error("'at' must be a future ISO timestamp.");
     }
 
     const created = await this.reminderRepo.insertIfNotExists({ name, at });
-    if (created) {
-      this.scheduler.push(created);
+    if (created && this.scheduler) {
+      await this.scheduler.push(created);
       return { reminder: created, created: true };
     }
 
@@ -49,14 +49,15 @@ export class ReminderService {
     return { reminder: existing, created: false };
   }
 
-  async onReminderDue(reminder: Reminder) {
-    console.info(`[ReminderService][onReminderDue]: set 'FIRED' status on reminder: ${reminder.id} ${reminder.name}`);
-    const now = this.clock.now();
-    await this.reminderRepo.setFiredStatus(reminder.id, now);
+  async onReminderDue(id: string) {
+    const now = this.clock();
+    const rem = await this.reminderRepo.setFiredStatus(id, now);
+    if (!rem) return;
+    console.info(`[ReminderService][onReminderDue]: set 'FIRED' status on reminder: ${rem.id} ${rem.name}`);
     this.broadcaster.reminderFired({
-      id: reminder.id,
-      name: reminder.name,
-      atIso: new Date(reminder.at).toISOString(),
+      id: rem.id,
+      name: rem.name,
+      atIso: new Date(rem.at).toISOString(),
       firedAtIso: new Date(now).toISOString()
     })
   }
