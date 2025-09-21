@@ -1,4 +1,4 @@
-import { DeepPartial, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Reminder } from '../entities/reminder.entity';
 import { AppDataSource } from '../data-source';
 import { ReminderStatus } from '../types';
@@ -10,12 +10,16 @@ export class ReminderRepository {
     this.repo = AppDataSource.getRepository(Reminder);
   }
 
-  async create(data: DeepPartial<Reminder>): Promise<Reminder> {
-    return this.repo.create(data);
-  }
+  async insertIfNotExists(data: { name: string; at: Date }): Promise<Reminder | null> {
+    const qb = this.repo.createQueryBuilder()
+      .insert()
+      .into(Reminder)
+      .values([{ name: data.name, at: data.at, status: 'PENDING' }])
+      .onConflict(`(name) WHERE status = 'PENDING' DO NOTHING`)
+      .returning('*');
 
-  async save(rem: Reminder): Promise<Reminder> {
-    return this.repo.save(rem);
+    const res = await qb.execute();
+    return (res.generatedMaps[0] as Reminder) ?? null;
   }
 
   async getPendingByName(name: string) {

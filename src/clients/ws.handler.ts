@@ -1,23 +1,22 @@
 import WebSocket from 'ws';
 import { z } from "zod";
-import { ReminderPayloadWsSchema, FiredReminderPayloadWsSchema } from '../schemas';
-import { ReminderPayload, FiredReminderPayload } from '../types';
+import { ReminderPayloadWsSchema, FiredReminderPayloadWsSchema, ReminderPayload, FiredReminderPayload } from '../schemas';
 
-type AllowedSchemas =
+type WsPayloadSchemas =
   | typeof ReminderPayloadWsSchema
   | typeof FiredReminderPayloadWsSchema;
 
-type AllowedPayloads = ReminderPayload | FiredReminderPayload;
+type wsPayload = ReminderPayload | FiredReminderPayload;
 
 type AttachOptions = {
   exitOnFire?: boolean;
 };
 
-function validateWsPayload<T extends AllowedPayloads>(
-  schema: Extract<AllowedSchemas, z.ZodType<T>>, payload: z.ZodType<T>): T | null {
+function validateWsPayload<T extends wsPayload>(
+  schema: Extract<WsPayloadSchemas, z.ZodType<T>>, payload: z.ZodType<T>): T | null {
   const result = schema.safeParse(payload);
   if (!result.success) {
-    console.error('Payload invalide:', result.error.format());
+    console.error('Invalid payload:', result.error.format());
     return null;
   }
   return result.data;
@@ -29,7 +28,7 @@ export function attachReminderEvents(ws: WebSocket, { exitOnFire = true }: Attac
     try {
       data = JSON.parse(buf.toString());
     } catch {
-      console.error('Payload invalide: JSON mal formé');
+      console.error('Invalid Payload: JSON bad formatting');
       return;
     }
 

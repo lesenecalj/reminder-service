@@ -18,3 +18,13 @@ export const FiredReminderPayloadWsSchema = z.object({
   atIso: z.string().datetime(),
   firedAtIso: z.string().datetime(),
 });
+
+export const ServerToClientSchema = z.union([
+  z.object({ type: z.literal('S2C_REMINDER_ADDED'), payload: ReminderPayloadWsSchema }),
+  z.object({ type: z.literal('S2C_REMINDER_FIRED'), payload: FiredReminderPayloadWsSchema }),
+  z.object({ type: z.literal('ERROR'), payload: z.object({ code: z.string(), message: z.string() }) }),
+]);
+
+export type ReminderPayload = z.infer<typeof ReminderPayloadWsSchema>;
+export type FiredReminderPayload = z.infer<typeof FiredReminderPayloadWsSchema>;
+export type ServerToClientMessage = z.infer<typeof ServerToClientSchema>;
