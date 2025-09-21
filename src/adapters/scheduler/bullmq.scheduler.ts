@@ -1,10 +1,10 @@
 import { Queue, Worker, JobsOptions } from 'bullmq';
 import IORedis from 'ioredis';
 
-interface IScheduler {
-  start(onFire: (reminderId: string) => Promise<void> | void): Promise<void> | void;
+export interface IScheduler {
+  start(onFire: (id: string) => Promise<void> | void): Promise<void> | void;
   push(job: { id: string; at: Date }): Promise<void> | void;
-  load?(jobs: { id: string; at: Date }[]): Promise<void> | void; // optionnel
+  load(jobs: { id: string; at: Date }[]): Promise<void> | void;
   clear?(): Promise<void> | void;
   close?(): Promise<void> | void;
 }
@@ -48,6 +48,7 @@ export class BullmqScheduler implements IScheduler {
   }
 
   async load(jobs: { id: string; at: Date }[]) {
+    console.info('loading jobs', JSON.stringify(jobs, null, 2));
     await Promise.all(jobs.map(j => this.push(j)));
   }
 
