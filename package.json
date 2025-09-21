@@ -4,11 +4,13 @@
   "description": "Create real time reminder service",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "start": "node dist/server.js",
     "build": "tsc -p tsconfig.json",
-    "cli:create": "tsx src/clients/cli-create.ts",
-    "cli:listen": "tsx src/clients/client-listener.ts",
+    "docker:up": "docker compose up -d",
+    "docker:logs": "docker compose logs -f app",
+    "docker:down": "docker compose down",
+    "docker:reset": "docker compose down -v && docker compose up -d --build",
+    "cli:create": "docker compose exec app node dist/clients/cli-create.js",
+    "cli:listen": "docker compose exec app node dist/clients/client-listener.js",
     "test": "vitest run --coverage"
   },
   "keywords": [],

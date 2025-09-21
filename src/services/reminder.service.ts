@@ -1,16 +1,9 @@
+import { IScheduler } from '../adapters/scheduler/bullmq.scheduler';
 import { Reminder } from '../entities/reminder.entity';
 import { Broadcaster } from '../helpers/broadcaster';
 import { ReminderRepository } from '../repositories/reminder.repository';
 import { AddReminderSchema } from '../schemas';
 import { CreateReminderInput, CreateReminderOutput } from '../types';
-
-export interface IScheduler {
-  start(onFire: (id: string) => Promise<void> | void): Promise<void> | void;
-  push(job: { id: string; at: Date }): Promise<void> | void;
-  load(jobs: { id: string; at: Date }[]): Promise<void> | void;
-  clear?(): Promise<void> | void;
-  close?(): Promise<void> | void;
-}
 
 export class ReminderService {
   constructor(
@@ -21,9 +14,12 @@ export class ReminderService {
   ) { }
 
   async getPendingReminders(): Promise<Reminder[]> {
-    const pendingReminders = await this.reminderRepo.list('PENDING');
+    return this.reminderRepo.list('PENDING');
+  }
+
+  async bootstrap() {
+    const pendingReminders = await this.getPendingReminders();
     await this.scheduler.load(pendingReminders);
-    return pendingReminders;
   }
 
   async addReminder(input: CreateReminderInput): Promise<CreateReminderOutput> {

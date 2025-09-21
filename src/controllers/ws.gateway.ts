@@ -48,7 +48,6 @@ export class WebSocketGateway {
         }
       })
     })
-    await this.reminderService.getPendingReminders();
   }
 
   async stop() {

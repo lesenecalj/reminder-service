@@ -42,7 +42,8 @@ services:
         condition: service_healthy
     environment:
       NODE_ENV: ${NODE_ENV}
-      PORT: ${PORT}
+      WS_PORT: ${WS_PORT}
+      WS_URL: ws://localhost:${WS_PORT}
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: ${REDIS_URL}
     ports:
