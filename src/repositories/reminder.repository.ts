@@ -33,7 +33,15 @@ export class ReminderRepository {
     });
   }
 
-  async setFiredStatus(id: string, at: Date) {
-    await this.repo.update({ id }, { status: "FIRED", fired_at: at });
+  async setFiredStatus(id: string, at: Date): Promise<Reminder> {
+    const qb = this.repo
+      .createQueryBuilder()
+      .update(Reminder)
+      .set({ status: 'FIRED', fired_at: at })
+      .where('id = :id AND status = :status', { id, status: 'PENDING' })
+      .returning('*');
+
+    const res = await qb.execute();
+    return (res.raw[0] as Reminder) ?? null;
   }
 }

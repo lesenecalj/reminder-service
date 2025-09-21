@@ -1,22 +1,18 @@
 import { WebSocket, WebSocketServer } from 'ws';
-import { Scheduler } from '../helpers/scheduler';
 import { ReminderService } from '../services/reminder.service';
 import { ServerToClientMessage } from '../schemas';
 
 export class WebSocketGateway {
   private wss?: WebSocketServer
   private readonly clients = new Set<WebSocket>();
-  private readonly scheduler: Scheduler;
   private readonly reminderService: ReminderService;
 
   constructor(
     private readonly port: number,
     reminderService: ReminderService,
-    scheduler: Scheduler,
     clients: Set<WebSocket>,
   ) {
     this.reminderService = reminderService;
-    this.scheduler = scheduler;
     this.clients = clients;
   }
 
@@ -56,8 +52,6 @@ export class WebSocketGateway {
   }
 
   async stop() {
-    if ((this.scheduler as any).clearTimer) (this.scheduler as any).clearTimer();
-
     for (const ws of this.clients) try { ws.close() } catch { }
     this.clients.clear();
 

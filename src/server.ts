@@ -1,33 +1,29 @@
-import { WebSocket } from 'ws';
 import 'dotenv/config';
+import { WebSocket } from 'ws';
 import { AppDataSource } from './data-source';
 import { WebSocketGateway } from './controllers/ws.gateway';
 import { ReminderService } from './services/reminder.service';
 import { ReminderRepository } from './repositories/reminder.repository';
-import { Scheduler } from './helpers/scheduler';
-import { SystemClock } from './helpers/system.clock';
 import { Broadcaster } from './helpers/broadcaster';
+import { BullmqScheduler } from './adapters/scheduler/bullmq.scheduler';
 
 const PORT = Number(process.env.PORT || 8080);
 
 await AppDataSource.initialize();
 console.info('DB initialized');
-const systemClock = new SystemClock();
 const clients = new Set<WebSocket>();
-
-const scheduler = new Scheduler(systemClock);
+const scheduler = new BullmqScheduler({ redisUrl: process.env.REDIS_URL! });
 const broadcaster = new Broadcaster(clients);
 const reminderRepository = new ReminderRepository();
 const reminderService = new ReminderService(
-  systemClock,
   scheduler,
   broadcaster,
   reminderRepository,
 );
 
-scheduler.setOnFire(r => { reminderService.onReminderDue(r); });
+await scheduler.start((id) => reminderService.onReminderDue(id));
 
-const webSocketGateway = new WebSocketGateway(PORT, reminderService, scheduler, clients);
+const webSocketGateway = new WebSocketGateway(PORT, reminderService, clients);
 await webSocketGateway.start();
 console.info(`WS listening on ws://localhost:${PORT}`);
 
