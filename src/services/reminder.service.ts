@@ -20,9 +20,10 @@ export class ReminderService {
     this.reminderRepo = reminderRepository;
   }
 
-  async getPendingReminder() {
+  async getPendingReminders(): Promise<Reminder[]> {
     const pendingReminders = await this.reminderRepo.list('PENDING');
     this.scheduler.load(pendingReminders);
+    return pendingReminders;
   }
 
   async addReminder(input: CreateReminderInput): Promise<CreateReminderOutput> {
@@ -34,29 +35,18 @@ export class ReminderService {
       throw new Error("'at' must be a future ISO timestamp.");
     }
 
+    const created = await this.reminderRepo.insertIfNotExists({ name, at });
+    if (created) {
+      this.scheduler.push(created);
+      return { reminder: created, created: true };
+    }
+
     const existing = await this.reminderRepo.getPendingByName(name);
-    if (existing) {
-      console.info(`[ReminderService][addReminder]: return reminder already created with name="${existing.name}" (${existing.id})`);
-      return { reminder: existing, created: false };
+    if (!existing) {
+      throw new Error('Inconsistent state after insertIfNotExists');
     }
-
-    try {
-      const reminder = await this.reminderRepo.create({ name, at, status: 'PENDING' });
-      const createdReminder = await this.reminderRepo.save(reminder);
-      console.info(`[ReminderService][addReminder]: created reminder with name="${createdReminder.name}" (${createdReminder.id})`);
-      this.scheduler.push(createdReminder);
-      return { reminder: createdReminder, created: true };
-    } catch (error: any) {
-      if (error?.code === '23505') {
-        const dup = await this.reminderRepo.getPendingByName(name);
-        if (dup) return { reminder: dup, created: false };
-      }
-      throw error;
-    }
-  }
-
-  private async fire(reminder: Reminder) {
-    await this.reminderRepo.setFiredStatus(reminder.id, this.clock.now());
+    console.info(`[ReminderService][addReminder]: return reminder already created with name="${existing.name}" (${existing.id})`);
+    return { reminder: existing, created: false };
   }
 
   async onReminderDue(reminder: Reminder) {

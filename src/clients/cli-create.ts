@@ -1,9 +1,15 @@
+import 'dotenv/config';
 import WebSocket from 'ws';
 import { waitOpen, attachReminderEvents } from './ws.handler.js';
 import { createInterface } from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 
-const WS_URL = process.env.WS_URL || 'ws://localhost:8080';
+const WS_URL = process.env.WS_URL;
+
+if (!WS_URL) {
+  console.error('process.env.WS_URL should be defined.');
+  process.exit(1);
+}
 
 async function main() {
   const rl = createInterface({ input, output });
@@ -20,7 +26,7 @@ async function main() {
   }
   await rl.close();
 
-  const ws = new WebSocket(WS_URL);
+  const ws = new WebSocket(WS_URL!);
   await waitOpen(ws);
   attachReminderEvents(ws, { exitOnFire: true });
 

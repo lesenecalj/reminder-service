@@ -1,6 +1,7 @@
 import { WebSocket, WebSocketServer } from 'ws';
 import { Scheduler } from '../helpers/scheduler';
 import { ReminderService } from '../services/reminder.service';
+import { ServerToClientMessage } from '../schemas';
 
 export class WebSocketGateway {
   private wss?: WebSocketServer
@@ -33,7 +34,7 @@ export class WebSocketGateway {
           if (msg?.type === 'C2S_ADD_REMINDER') {
             const { name, at } = msg.payload ?? {};
             const { reminder, created } = await this.reminderService.addReminder({ name, atIso: at });
-            ws.send(JSON.stringify({
+            const s2cMsg: ServerToClientMessage = {
               type: 'S2C_REMINDER_ADDED',
               payload: {
                 id: reminder.id,
@@ -41,7 +42,8 @@ export class WebSocketGateway {
                 at: new Date(reminder.at).toISOString(),
                 created,
               }
-            }));
+            }
+            ws.send(JSON.stringify(s2cMsg));
           } else {
             ws.send(JSON.stringify({ type: 'ERROR', payload: { code: 'UNKNOWN_TYPE', message: 'Unsupported message type' } }));
           }
@@ -50,8 +52,7 @@ export class WebSocketGateway {
         }
       })
     })
-
-    await this.reminderService.getPendingReminder();
+    await this.reminderService.getPendingReminders();
   }
 
   async stop() {
