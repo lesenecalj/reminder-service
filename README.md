@@ -58,6 +58,7 @@ cp .env.example .env
 ### 2. Run with Docker Compose
 Spin up **Postgres + Redis + the app**:
 ```bash
+npm run docker:build
 npm run docker:up
 ```
 
