@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "docker:build": "docker compose build --no-cache app",
     "docker:up": "docker compose up -d",
     "docker:logs": "docker compose logs -f app",
     "docker:down": "docker compose down",

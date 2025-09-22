@@ -134,6 +134,8 @@ This layering makes it easy to:
   - PostgreSQL: use [pgAdmin 4](https://www.pgadmin.org/)
   - Redis: use [RedisInsight](https://redis.com/redis-enterprise/redis-insight/).
 
+> **Notice**: Use the **host port** to connect to the databases when using external UI tools (e.g., pgAdmin, RedisInsight), since they are outside of Docker.
+
 ## Example Workflow
 
 1. Run `npm run docker:up`  
