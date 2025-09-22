@@ -38,6 +38,11 @@ export function attachReminderEvents(ws: WebSocket, { exitOnFire = true }: Attac
       console.warn(
         `Accusé de réception (created: ${payload.created}) (id:${payload.id}) pour le rappel: ${payload.name}.`,
       );
+      if (!payload.created) {
+        console.info('Fermeture du client (created=false).');
+        ws.close();
+        ws.once('close', () => process.exit(0));
+      }
     }
 
     if (data?.type === 'S2C_REMINDER_FIRED') {
