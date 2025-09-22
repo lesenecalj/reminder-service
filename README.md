@@ -52,6 +52,7 @@ src/
 git clone https://github.com/lesenecalj/reminder-service.git
 cd reminder-service
 npm install
+cp .env.example .env
 ```
 
 ### 2. Run with Docker Compose
