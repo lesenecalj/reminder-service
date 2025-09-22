@@ -10,7 +10,7 @@ export class ReminderService {
     private readonly scheduler: IScheduler,
     private readonly broadcaster: Broadcaster,
     private readonly reminderRepo: ReminderRepository,
-    private readonly clock = () => new Date(),
+    private readonly clock: () => Date = () => new Date(),
   ) { }
 
   async getPendingReminders(): Promise<Reminder[]> {
