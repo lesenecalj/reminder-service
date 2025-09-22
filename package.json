@@ -11,7 +11,7 @@
     "docker:reset": "docker compose down -v && docker compose up -d --build",
     "cli:create": "docker compose exec app node dist/clients/cli-create.js",
     "cli:listen": "docker compose exec app node dist/clients/client-listener.js",
-    "test": "vitest run --coverage"
+    "test": "vitest run -c vitest.config.mts"
   },
   "keywords": [],
   "author": "",
