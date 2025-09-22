@@ -19,7 +19,8 @@ export class ReminderRepository {
       .returning('*');
 
     const res = await qb.execute();
-    return (res.generatedMaps[0] as Reminder) ?? null;
+    const row = (res.raw?.[0] as Reminder | undefined) ?? null;
+    return row;
   }
 
   async getPendingByName(name: string) {
